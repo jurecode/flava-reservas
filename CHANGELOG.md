@@ -6,6 +6,19 @@ versionado [SemVer](https://semver.org/lang/es/).
 
 ---
 
+## v1.3.6 — 2026-08-25
+
+### Changed
+
+- La portada prometía «menos de un minuto» en el héroe y «30 segundos» dos
+  secciones más abajo. Ahora dice 30 segundos en ambos sitios, que es lo que
+  mide el flujo real.
+- El código fuente del sitio público incluye un comentario con la versión
+  instalada (`<!-- Flava Studio vX.Y.Z -->`), útil para confirmar de un vistazo
+  qué versión está desplegada.
+
+---
+
 ## v1.3.5 — 2026-08-25
 
 Repositorio listo para publicar.

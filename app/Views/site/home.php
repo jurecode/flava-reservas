@@ -15,7 +15,7 @@ View::start('content');
         <div class="hero-inner">
             <span class="hero-eyebrow"><?= icon('map-pin', 12) ?> Barbería · Santiago</span>
             <h1>Tu estilo.<em>Tu momento.</em></h1>
-            <p>Reserva online en menos de un minuto. Elige tu servicio, tu barbero y la hora que te acomoda. Sin llamadas, sin esperas.</p>
+            <p>Reserva online en 30 segundos. Elige tu servicio, tu barbero y la hora que te acomoda. Sin llamadas, sin esperas.</p>
 
             <div class="hero-actions">
                 <a href="<?= e(url('reservar')) ?>" class="btn btn-primary btn-lg">Reservar ahora</a>

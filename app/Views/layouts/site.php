@@ -8,6 +8,7 @@ use Core\View;
 
 $business = $business ?? \App\Services\SettingService::business();
 ?><!DOCTYPE html>
+<!-- Flava Studio v<?= e(config('version.version')) ?> -->
 <html lang="es-CL">
 <head>
     <meta charset="utf-8">
