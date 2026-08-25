@@ -43,4 +43,37 @@ class Branch extends Model
     {
         return $this->where(['status' => 1], 'name');
     }
+
+    /**
+     * Ubicación corta para mostrar en el sitio: «Providencia», «Viña del Mar».
+     *
+     * Usa la comuna, y si no está, la ciudad. Si tampoco, toma el último tramo
+     * de la dirección, que en Chile suele ser justamente la comuna
+     * («Av. Principal 1234, Providencia»). Devuelve null si no hay nada:
+     * es preferible omitir el dato a inventarlo.
+     */
+    public static function locationLabel(?array $branch = null): ?string
+    {
+        $branch ??= (new self())->default();
+
+        foreach (['commune', 'city'] as $campo) {
+            $valor = trim((string) ($branch[$campo] ?? ''));
+
+            if ($valor !== '') {
+                return $valor;
+            }
+        }
+
+        $direccion = trim((string) ($branch['address'] ?? ''));
+
+        if ($direccion === '' || !str_contains($direccion, ',')) {
+            return null;
+        }
+
+        $tramos = array_map('trim', explode(',', $direccion));
+        $ultimo = end($tramos);
+
+        // Un tramo con números es parte de la calle, no una comuna
+        return ($ultimo !== '' && !preg_match('/\d/', $ultimo)) ? $ultimo : null;
+    }
 }

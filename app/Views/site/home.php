@@ -13,7 +13,11 @@ View::start('content');
 <section class="hero honeycomb">
     <div class="container">
         <div class="hero-inner">
-            <span class="hero-eyebrow"><?= icon('map-pin', 12) ?> Barbería · Santiago</span>
+            <?php $ubicacion = \App\Models\Branch::locationLabel($branch); ?>
+            <span class="hero-eyebrow">
+                <?= icon('map-pin', 12) ?>
+                Barbería<?= $ubicacion !== null ? ' · ' . e($ubicacion) : '' ?>
+            </span>
             <h1>Tu estilo.<em>Tu momento.</em></h1>
             <p>Reserva online en 30 segundos. Elige tu servicio, tu barbero y la hora que te acomoda. Sin llamadas, sin esperas.</p>
 

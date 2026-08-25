@@ -6,6 +6,38 @@ versionado [SemVer](https://semver.org/lang/es/).
 
 ---
 
+## v1.3.9 — 2026-08-25
+
+### Fixed
+
+- **La portada decía «Santiago» aunque la barbería estuviera en otra parte.**
+  La ubicación del héroe estaba escrita a mano en la plantilla, así que una
+  barbería en Viña del Mar veía la ciudad equivocada en su propia página.
+  Ahora sale de los datos de la sucursal: usa la comuna, y si no está, la
+  ciudad; si tampoco, deduce la comuna del último tramo de la dirección
+  —descartándolo si contiene números, porque entonces es parte de la calle—.
+  Sin ningún dato utilizable, muestra sólo «Barbería» en vez de inventarlo.
+
+---
+
+## v1.3.8 — 2026-08-25
+
+### Changed
+
+- **La página de despliegues explica qué falta.** Antes deshabilitaba el botón
+  «Crear respaldo y actualizar» mostrando un único aviso genérico, sin decir cuál
+  de los cuatro requisitos no se cumplía ni qué hacer al respecto. Ahora los
+  lista uno por uno —integración activa, token, Git ejecutable desde PHP y
+  carpeta con repositorio— y para cada uno que falta indica cómo resolverlo.
+- **Se añadió el procedimiento alternativo**, visible siempre que el despliegue
+  automático no sea posible: respaldar, actualizar los archivos desde el panel
+  del hosting, ejecutar las migraciones y comprobar la versión. En hosting
+  compartido esa es la vía real, y el panel no la mencionaba.
+- Aunque el despliegue automático no esté disponible, se puede consultar GitHub
+  desde la misma página para saber si hay algo nuevo.
+
+---
+
 ## v1.3.7 — 2026-08-25
 
 ### Fixed

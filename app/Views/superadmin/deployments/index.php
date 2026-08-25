@@ -48,70 +48,166 @@ $canDeploy = $status['github_enabled'] && $status['is_repository'] && $status['g
 
 <div class="grid-2 gap-lg">
     <div class="stack">
-        <!-- Ejecutar actualización -->
+        <!-- Estado de las capacidades del servidor -->
         <div class="card">
             <h2 style="font-size:1rem">Actualizar producción</h2>
 
-            <?php if (!$canDeploy): ?>
-                <div class="alert alert-warning mb-2">
-                    <?= icon('zap', 17) ?>
-                    <div>
-                        <?php if (!$status['github_enabled']): ?>
-                            La integración con GitHub está desactivada.
-                        <?php elseif (!$status['git_available']): ?>
-                            Este servidor no permite ejecutar Git desde PHP. Actualiza el código por SSH o cPanel
-                            y luego ejecuta las <a href="<?= e(url('super-admin/migraciones')) ?>">migraciones</a> desde el panel.
-                        <?php else: ?>
-                            El directorio del servidor no es un repositorio Git.
+            <?php
+                // Cada requisito por separado: así el panel dice exactamente
+                // qué falta, en vez de deshabilitar el botón sin explicación.
+                $requisitos = [
+                    [
+                        'ok'    => $status['github_enabled'],
+                        'label' => 'Integración con GitHub activa',
+                        'falta' => 'Actívala en Configurar GitHub, marcando «Integración activa».',
+                    ],
+                    [
+                        'ok'    => $status['github_token'],
+                        'label' => 'Token de acceso configurado',
+                        'falta' => 'Guarda un token en Configurar GitHub.',
+                    ],
+                    [
+                        'ok'    => $status['git_available'],
+                        'label' => 'PHP puede ejecutar Git',
+                        'falta' => 'Tu hosting no lo permite. La actualización de archivos se hace desde el panel del hosting.',
+                    ],
+                    [
+                        'ok'    => $status['is_repository'],
+                        'label' => 'La carpeta es un repositorio Git',
+                        'falta' => 'Los archivos se subieron a mano. Para desplegar desde aquí habría que clonar el repositorio en el servidor.',
+                    ],
+                ];
+            ?>
+
+            <?php foreach ($requisitos as $requisito): ?>
+                <div class="check-row">
+                    <span class="<?= $requisito['ok'] ? 'ok' : 'muted' ?>">
+                        <?= $requisito['ok'] ? icon('check-circle', 16) : icon('x-circle', 16) ?>
+                    </span>
+                    <div class="grow">
+                        <div class="small bold"><?= e($requisito['label']) ?></div>
+                        <?php if (!$requisito['ok']): ?>
+                            <div class="tiny muted"><?= e($requisito['falta']) ?></div>
                         <?php endif; ?>
                     </div>
                 </div>
+            <?php endforeach; ?>
+
+            <hr class="divider">
+
+            <div class="data-row"><span class="k">Versión instalada</span><span class="v">v<?= e($status['version']) ?></span></div>
+            <div class="data-row"><span class="k">Commit</span><span class="v mono"><?= e($status['current_commit'] ?? '—') ?></span></div>
+            <div class="data-row"><span class="k">Rama</span><span class="v mono"><?= e($status['github_branch']) ?></span></div>
+
+            <?php if ($canDeploy): ?>
+                <div class="alert alert-info mt-2">
+                    <?= icon('info', 16) ?>
+                    <div class="small">
+                        <strong>El despliegue no toca:</strong> <code>.env</code>,
+                        <code>config/secrets.php</code>, <code>config/database.php</code>,
+                        <code>/storage</code> ni <code>/public/uploads</code>.
+                        La base de datos sólo cambia mediante migraciones.
+                    </div>
+                </div>
+
+                <form method="post" action="<?= e(url('super-admin/despliegues/ejecutar')) ?>" class="mt-2" data-once>
+                    <?= csrf_field() ?>
+
+                    <div class="field">
+                        <label class="label" for="confirm_password">Confirma tu contraseña</label>
+                        <input class="input" type="password" id="confirm_password" name="confirm_password"
+                               autocomplete="current-password">
+                    </div>
+
+                    <?php if ($status['is_repository'] && !$status['local_changes']['clean']): ?>
+                        <label class="check mb-2">
+                            <input type="checkbox" name="force" value="1">
+                            <span class="small" style="color:var(--danger)">
+                                Continuar aunque existan modificaciones locales en el servidor
+                            </span>
+                        </label>
+                    <?php endif; ?>
+
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">
+                        <?= icon('rocket', 16) ?> Crear respaldo y actualizar
+                    </button>
+                </form>
+            <?php else: ?>
+                <div class="alert alert-warning mt-2 mb-0">
+                    <?= icon('zap', 16) ?>
+                    <div class="small">
+                        El despliegue automático no está disponible con la configuración actual.
+                        Abajo tienes el procedimiento que sí funciona en tu servidor.
+                    </div>
+                </div>
             <?php endif; ?>
-
-            <div class="sys-row"><span class="k">Versión instalada</span><span class="v">v<?= e($status['version']) ?></span></div>
-            <div class="sys-row"><span class="k">Commit</span><span class="v mono"><?= e($status['current_commit'] ?? '—') ?></span></div>
-            <div class="sys-row"><span class="k">Rama</span><span class="v mono"><?= e($status['github_branch']) ?></span></div>
-            <div class="sys-row">
-                <span class="k">Respaldo previo</span>
-                <span class="v"><?= setting('deploy_auto_backup', true) ? 'Sí' : 'No' ?></span>
-            </div>
-            <div class="sys-row">
-                <span class="k">Mantención</span>
-                <span class="v"><?= setting('deploy_maintenance', true) ? 'Sí' : 'No' ?></span>
-            </div>
-
-            <div class="alert alert-info mt-2">
-                <?= icon('info', 17) ?>
-                <div class="small">
-                    <strong>El despliegue no toca:</strong> <code>.env</code>, <code>config/secrets.php</code>,
-                    <code>config/database.php</code>, <code>/storage</code> ni <code>/public/uploads</code>.
-                    La base de datos sólo cambia mediante migraciones.
-                </div>
-            </div>
-
-            <form method="post" action="<?= e(url('super-admin/despliegues/ejecutar')) ?>" class="mt-2" data-once>
-                <?= csrf_field() ?>
-
-                <div class="field">
-                    <label class="label" for="confirm_password">Confirma tu contraseña</label>
-                    <input class="input" type="password" id="confirm_password" name="confirm_password"
-                           autocomplete="current-password" <?= $canDeploy ? '' : 'disabled' ?>>
-                </div>
-
-                <?php if ($status['is_repository'] && !$status['local_changes']['clean']): ?>
-                    <label class="check mb-2">
-                        <input type="checkbox" name="force" value="1">
-                        <span class="small" style="color:var(--danger)">
-                            Continuar aunque existan modificaciones locales en el servidor
-                        </span>
-                    </label>
-                <?php endif; ?>
-
-                <button type="submit" class="btn btn-primary btn-lg btn-block" <?= $canDeploy ? '' : 'disabled' ?>>
-                    <?= icon('rocket', 15) ?> Crear respaldo y actualizar
-                </button>
-            </form>
         </div>
+
+        <!-- Camino alternativo: siempre visible cuando no se puede automatizar -->
+        <?php if (!$canDeploy): ?>
+            <div class="card">
+                <h2 style="font-size:1rem"><?= icon('list', 16) ?> Cómo actualizar tu servidor</h2>
+                <p class="small muted" style="margin-top:-4px">
+                    En hosting compartido los archivos se actualizan desde el panel del
+                    hosting; la base de datos, desde aquí.
+                </p>
+
+                <div class="next-steps mt-2">
+                    <div class="next-step">
+                        <span class="num">1</span>
+                        <div class="txt">
+                            <strong>Crea un respaldo</strong>
+                            <span>Antes de cualquier cambio.
+                                <a href="<?= e(url('super-admin/respaldos')) ?>">Ir a Respaldos</a></span>
+                        </div>
+                    </div>
+
+                    <div class="next-step">
+                        <span class="num">2</span>
+                        <div class="txt">
+                            <strong>Actualiza los archivos</strong>
+                            <span>
+                                En el panel de tu hosting: <strong>Avanzado → GIT</strong> y pulsa
+                                <em>Deploy</em>, o sube los archivos por el Administrador de archivos.
+                                No toques <code>config/</code>, <code>storage/</code> ni
+                                <code>public/uploads/</code>.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="next-step">
+                        <span class="num">3</span>
+                        <div class="txt">
+                            <strong>Ejecuta las migraciones</strong>
+                            <span>Si la versión nueva cambia la base de datos.
+                                <a href="<?= e(url('super-admin/migraciones')) ?>">Ir a Migraciones</a></span>
+                        </div>
+                    </div>
+
+                    <div class="next-step">
+                        <span class="num">4</span>
+                        <div class="txt">
+                            <strong>Comprueba la versión</strong>
+                            <span>Debe subir el número que aparece arriba como «Versión instalada».</span>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if ($status['github_enabled'] && $status['github_token']): ?>
+                    <hr class="divider">
+                    <p class="small muted mb-2">
+                        Aunque el despliegue automático no esté disponible, sí puedes consultar
+                        GitHub para saber si hay algo nuevo.
+                    </p>
+                    <form method="post" action="<?= e(url('super-admin/github/buscar')) ?>">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-light btn-sm btn-block">
+                            <?= icon('refresh', 15) ?> Buscar actualizaciones en GitHub
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
 
         <?php if (!empty($updates) && $updates['available']): ?>
             <div class="card card-accent">
