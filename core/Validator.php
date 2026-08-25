@@ -131,7 +131,7 @@ final class Validator
             'after_or_equal' => $this->afterOrEqual((string) $value, (string) $parameter),
             'in'            => in_array((string) $value, explode(',', (string) $parameter), true),
             'not_in'        => !in_array((string) $value, explode(',', (string) $parameter), true),
-            'regex'         => (bool) preg_match((string) $parameter, (string) $value),
+            'regex'         => $this->matchesPattern((string) $parameter, (string) $value),
             'alpha_dash'    => (bool) preg_match('/^[a-zA-Z0-9_\-]+$/', (string) $value),
             'slug'          => (bool) preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', (string) $value),
             'rut'           => Rut::isValid((string) $value),
@@ -142,6 +142,31 @@ final class Validator
             'exists'        => $this->recordExists((string) $parameter, $value),
             default         => true,
         };
+    }
+
+    /**
+     * Aplica una regla `regex` sin que un patrón mal formado tumbe la petición.
+     *
+     * Un patrón puede llegar partido si la regla se escribió como texto y el
+     * propio patrón contenía el separador «|». En ese caso la validación falla
+     * —el valor no se da por bueno— y queda registrado para corregir la regla,
+     * en vez de provocar un error 500.
+     */
+    private function matchesPattern(string $pattern, string $value): bool
+    {
+        $resultado = @preg_match($pattern, $value);
+
+        if ($resultado === false) {
+            logger()->error('Patrón de validación inválido', [
+                'pattern' => $pattern,
+                'error'   => preg_last_error_msg(),
+                'ayuda'   => 'Si el patrón contiene «|», declara las reglas como array en vez de texto.',
+            ]);
+
+            return false;
+        }
+
+        return $resultado === 1;
     }
 
     private function requiredIf(mixed $value, string $parameter): bool

@@ -6,6 +6,22 @@ versionado [SemVer](https://semver.org/lang/es/).
 
 ---
 
+## v1.3.7 — 2026-08-25
+
+### Fixed
+
+- **Guardar la configuración de GitHub devolvía error 500.** La regla que valida
+  el *owner* se declaraba como texto y su patrón contenía el carácter `|`, que
+  es justo el separador de esa sintaxis: el validador partía el patrón en dos
+  trozos inválidos y `preg_match()` fallaba. Las reglas con expresiones
+  regulares pasan ahora como array, donde el separador no interviene.
+- **El validador ya no se cae ante un patrón mal formado.** Antes cualquier
+  regex inválida se convertía en excepción fatal. Ahora la validación falla
+  —el valor no se da por bueno— y el patrón queda registrado en el log con la
+  causa, en vez de tumbar la petición.
+
+---
+
 ## v1.3.6 — 2026-08-25
 
 ### Changed

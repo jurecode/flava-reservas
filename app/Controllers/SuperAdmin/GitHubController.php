@@ -57,10 +57,12 @@ class GitHubController extends Controller
     /** Guarda owner, repositorio, rama y opciones de despliegue (spec §145). */
     public function saveConfig(): Response
     {
+        // Las reglas van como array a propósito: un patrón regex puede contener
+        // el carácter «|», que es justo el separador de la sintaxis de texto.
         $validator = new Validator($this->request->all(), [
-            'github_owner'      => 'nullable|max:100|regex:/^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/',
-            'github_repository' => 'nullable|max:120|regex:/^[A-Za-z0-9._\-]+$/',
-            'github_branch'     => 'nullable|max:100|regex:/^[A-Za-z0-9._\/\-]+$/',
+            'github_owner'      => ['nullable', 'max:100', 'regex:/^[A-Za-z0-9][A-Za-z0-9\-]{0,38}$/'],
+            'github_repository' => ['nullable', 'max:120', 'regex:/^[A-Za-z0-9._\-]+$/'],
+            'github_branch'     => ['nullable', 'max:100', 'regex:/^[A-Za-z0-9._\/\-]+$/'],
         ], [
             'github_owner'      => 'El owner de GitHub no tiene un formato válido.',
             'github_repository' => 'El nombre del repositorio no tiene un formato válido.',

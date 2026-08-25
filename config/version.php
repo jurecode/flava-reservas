@@ -6,7 +6,7 @@
  */
 
 return [
-    'version'      => '1.3.6',
+    'version'      => '1.3.7',
     'released_at'  => '2026-08-24',
     'codename'     => 'Panal',
 ];
