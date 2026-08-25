@@ -1,0 +1,50 @@
+# Ruta: /.htaccess
+#
+# El dominio apunta a la carpeta del proyecto (hosting compartido sin opción de
+# cambiar el directorio raíz). El front controller es el index.php de esta misma
+# carpeta; sólo /assets y /uploads se sirven desde /public.
+#
+# No se reescribe todo hacia /public a propósito: esa técnica se reaplica en
+# algunos servidores —REQUEST_URI no cambia en las reescrituras internas— y
+# termina en un bucle que hace que el servidor deje de aplicar el .htaccess.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Las carpetas internas nunca se sirven por web
+    RewriteRule ^(app|core|config|storage|database|routes|docs|bin)/ - [F,L]
+
+    # Los archivos estáticos viven en /public/assets y /public/uploads: son
+    # rutas reales, el servidor las entrega sin intervención. Sólo se acepta
+    # navegar la carpeta public para eso; el resto vuelve a la raíz.
+    RewriteCond %{REQUEST_URI} !^/public/(assets|uploads)/
+    RewriteRule ^public/(.*)$ /$1 [R=301,L]
+
+    # Compatibilidad: si algún enlace apunta a /assets o /uploads sin prefijo
+    RewriteRule ^(assets|uploads)/(.*)$ public/$1/$2 [L]
+
+    # Los archivos y carpetas que existen de verdad se sirven tal cual
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Todo lo demás lo resuelve el front controller
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Sin reescritura, al menos la portada responde
+DirectoryIndex index.php
+
+Options -Indexes
+
+# Nunca servir archivos sensibles que estén en la raíz
+<FilesMatch "^(\.env.*|composer\.(json|lock)|.*\.sql|.*\.md|htaccess-.*\.txt)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>

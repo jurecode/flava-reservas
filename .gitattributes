@@ -1,0 +1,16 @@
+# Ruta: /.gitattributes
+* text=auto eol=lf
+
+*.php   text diff=php
+*.sql   text
+*.md    text
+*.css   text
+*.js    text
+*.svg   text
+
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.woff2 binary
+*.ico   binary

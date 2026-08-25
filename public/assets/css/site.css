@@ -1,0 +1,477 @@
+/* ==========================================================================
+   Ruta: /public/assets/css/site.css
+   Sitio público y flujo de reserva.
+
+   El booking es lo más importante del sistema: cada pantalla muestra una sola
+   decisión, con opciones grandes y sin bordes que compitan por atención.
+   ========================================================================== */
+
+/* ---------- Navbar pública ---------- */
+.site-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--flava-deep);
+}
+
+.site-nav-inner { display: flex; align-items: center; justify-content: space-between; height: var(--header-h); gap: 14px; }
+
+.brand { display: inline-flex; align-items: center; gap: 9px; color: var(--flava-white); font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; letter-spacing: -.02em; }
+.brand-mark { width: 26px; height: 30px; flex-shrink: 0; }
+.brand span em { font-style: normal; color: var(--flava-yellow); }
+
+.site-links { display: none; gap: 24px; align-items: center; }
+.site-links a { color: rgba(255, 253, 245, .78); font-size: .89rem; font-weight: 600; transition: color .14s ease; }
+.site-links a:hover, .site-links a.is-active { color: var(--flava-yellow); }
+@media (min-width: 900px) { .site-links { display: flex; } }
+
+.nav-toggle { display: inline-flex; background: none; border: none; color: var(--flava-white); padding: 8px; }
+@media (min-width: 900px) { .nav-toggle { display: none; } }
+
+.mobile-menu { display: none; background: var(--flava-deep); padding: 4px 0 14px; }
+.mobile-menu.is-open { display: block; }
+.mobile-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: rgba(255,253,245,.84); font-weight: 600; border-radius: var(--radius); }
+.mobile-menu a:hover, .mobile-menu a.is-active { background: rgba(255,196,0,.1); color: var(--flava-yellow); }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; color: var(--flava-white); padding: 62px 0 72px; overflow: hidden; }
+.hero::after { content: ''; position: absolute; inset: auto 0 0; height: 80px; background: linear-gradient(transparent, var(--flava-white)); }
+.hero-inner { position: relative; z-index: 2; max-width: 600px; }
+
+.hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255, 196, 0, .1);
+    color: var(--flava-yellow); padding: 5px 12px; border-radius: var(--radius-sm);
+    font-size: .71rem; font-weight: 800; text-transform: uppercase; letter-spacing: .11em;
+    margin-bottom: 18px;
+}
+
+.hero h1 { color: var(--flava-white); margin-bottom: 12px; }
+.hero h1 em { font-style: normal; color: var(--flava-yellow); display: block; }
+.hero p { color: rgba(255, 253, 245, .7); font-size: 1.02rem; max-width: 440px; margin-bottom: 26px; }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.hero-stats { display: flex; gap: 30px; margin-top: 38px; flex-wrap: wrap; }
+.hero-stat strong { display: block; font-family: var(--font-display); font-size: 1.45rem; color: var(--flava-yellow); }
+.hero-stat span { font-size: .74rem; color: rgba(255,253,245,.55); text-transform: uppercase; letter-spacing: .07em; }
+
+/* ---------- Secciones ---------- */
+.section { padding: 52px 0; }
+.section-alt { background: var(--canvas); }
+.section-dark { background: var(--flava-black); color: var(--flava-white); }
+.section-dark h2 { color: var(--flava-white); }
+
+.section-head { margin-bottom: 26px; }
+.section-head .eyebrow { color: var(--flava-honey); font-size: .71rem; font-weight: 800; text-transform: uppercase; letter-spacing: .11em; display: block; margin-bottom: 7px; }
+.section-head h2 { margin-bottom: 5px; }
+.section-head p { color: var(--muted); margin: 0; }
+
+/* ---------- Servicios ----------
+   Tarjetas con imagen: la foto ocupa la tarjeta completa y el contenido va
+   encima, sobre un degradado que garantiza el contraste del texto. Cuando el
+   servicio no tiene foto, App\Support\Cover genera una portada de marca.
+   ------------------------------------------------------------------------ */
+
+.service-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 620px) { .service-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 980px) { .service-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* Destacados: la primera tarjeta manda, las otras la acompañan */
+.showcase { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+@media (min-width: 760px) {
+    .showcase { grid-template-columns: repeat(2, 1fr); }
+    .showcase > :first-child { grid-column: span 2; }
+    .showcase > :first-child .tile-media { aspect-ratio: 21 / 9; }
+    .showcase > :first-child .tile-name { font-size: clamp(1.5rem, 3.4vw, 2.1rem); }
+}
+
+@media (min-width: 1040px) {
+    .showcase { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto; }
+    .showcase > :first-child { grid-column: span 2; grid-row: span 2; }
+    .showcase > :first-child .tile-media { aspect-ratio: 4 / 3.5; }
+}
+
+/* Tarjeta-imagen */
+.tile {
+    position: relative;
+    display: block;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--flava-deep);
+    isolation: isolate;
+}
+
+.tile-media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+
+.tile-media img,
+.tile-media .cover-art {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .5s cubic-bezier(.2,.7,.3,1);
+}
+
+.tile:hover .tile-media img,
+.tile:hover .tile-media .cover-art { transform: scale(1.05); }
+
+/* El degradado es lo que hace legible el texto sobre cualquier foto */
+.tile-media::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to top,
+        rgba(13,13,13,.94) 0%,
+        rgba(13,13,13,.72) 32%,
+        rgba(13,13,13,.18) 62%,
+        rgba(13,13,13,.05) 100%);
+}
+
+.tile-body {
+    position: absolute; inset: auto 0 0 0;
+    padding: 16px;
+    color: var(--flava-white);
+    display: flex; align-items: flex-end; gap: 12px;
+}
+
+.tile-text { flex: 1; min-width: 0; }
+
+.tile-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+    margin: 0 0 5px;
+    color: var(--flava-white);
+}
+
+.tile-meta {
+    display: flex; align-items: center; gap: 10px;
+    font-size: .8rem;
+    color: rgba(255,253,245,.72);
+    flex-wrap: wrap;
+}
+
+.tile-meta > span { display: inline-flex; align-items: center; gap: 5px; }
+.tile-meta .ico { color: var(--flava-yellow); }
+
+.tile-desc {
+    font-size: .84rem;
+    color: rgba(255,253,245,.62);
+    margin: 7px 0 0;
+    display: none;
+}
+
+@media (min-width: 760px) { .showcase > :first-child .tile-desc { display: block; max-width: 42ch; } }
+
+/* Precio: chip sólido, siempre legible */
+.tile-price {
+    display: inline-flex; align-items: center;
+    background: var(--flava-yellow); color: var(--flava-black);
+    font-family: var(--font-display); font-weight: 800;
+    font-size: 1rem; letter-spacing: -.01em;
+    padding: 7px 12px; border-radius: var(--radius);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.showcase > :first-child .tile-price { font-size: 1.2rem; padding: 9px 15px; }
+
+/* Etiqueta superior (destacado, categoría).
+   Fondo sólido a propósito: backdrop-filter tapaba el texto en algunos motores. */
+.tile-tag {
+    position: absolute; top: 12px; left: 12px; z-index: 3;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--flava-yellow);
+    color: var(--flava-black);
+    font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .09em;
+    padding: 5px 9px; border-radius: var(--radius-xs);
+    line-height: 1.5;
+}
+
+.tile-tag .ico { color: var(--flava-black); }
+
+/* La etiqueta de categoría es secundaria: no compite con «Destacado» */
+.tile-tag-soft { background: rgba(13,13,13,.78); color: rgba(255,253,245,.9); }
+
+/* Acción: aparece al pasar el cursor, siempre visible en táctil */
+.tile-action {
+    position: absolute; top: 12px; right: 12px; z-index: 3;
+    width: 34px; height: 34px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--flava-yellow); color: var(--flava-black);
+    border-radius: var(--radius);
+    opacity: 0; transform: translateY(-4px);
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.tile:hover .tile-action, .tile:focus-visible .tile-action { opacity: 1; transform: translateY(0); }
+@media (hover: none) { .tile-action { opacity: 1; transform: none; } }
+
+.tile:focus-visible { outline: 2px solid var(--flava-yellow); outline-offset: 2px; }
+
+/* Fila compacta para el listado completo de servicios */
+.service-row {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border-radius: var(--radius-lg);
+    padding: 12px; transition: background .15s ease;
+}
+
+.service-row:hover { background: var(--surface-alt); }
+
+.service-row-media {
+    width: 84px; height: 64px; flex-shrink: 0;
+    border-radius: var(--radius); overflow: hidden;
+    background: var(--flava-deep);
+}
+
+.service-row-media img, .service-row-media .cover-art { width: 100%; height: 100%; object-fit: cover; }
+.service-row-body { flex: 1; min-width: 0; }
+.service-row-body h3 { margin: 0 0 3px; font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* La meta va en una línea: la descripción se corta con elipsis, no a mitad de palabra */
+.service-row-body .meta { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: .81rem; min-width: 0; overflow: hidden; }
+.service-row-body .meta > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.service-row-body .meta > span:last-child { overflow: hidden; text-overflow: ellipsis; display: block; min-width: 0; }
+.service-row-price { font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; white-space: nowrap; }
+
+@media (max-width: 520px) {
+    .service-row { flex-wrap: wrap; }
+    .service-row-media { width: 60px; height: 48px; }
+    .service-row .btn { width: 100%; }
+}
+
+/* ---------- Barberos ---------- */
+.barber-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 14px; }
+
+.barber-card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    overflow: hidden; display: flex; flex-direction: column;
+    transition: background .15s ease;
+}
+
+.barber-card:hover { background: var(--surface-alt); }
+
+.barber-photo {
+    aspect-ratio: 4 / 5; width: 100%; object-fit: cover;
+    background: var(--flava-deep);
+    display: block; overflow: hidden;
+}
+
+.barber-photo .cover-art { width: 100%; height: 100%; display: block; }
+
+.barber-card .info { padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.barber-card h3 { margin: 0; font-size: 1.02rem; }
+.barber-card .specialty { color: var(--muted); font-size: .82rem; margin: 0; flex: 1; }
+.barber-card .next-free { color: var(--ok); font-size: .78rem; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+
+/* ==========================================================================
+   FLUJO DE RESERVA
+   ========================================================================== */
+
+.booking-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
+
+.booking-top { background: var(--flava-deep); color: var(--flava-white); padding: 12px 0 0; position: sticky; top: 0; z-index: 60; }
+.booking-top-inner { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; }
+
+.booking-back {
+    background: rgba(255,255,255,.07); border: none; color: var(--flava-white);
+    width: 34px; height: 34px; border-radius: var(--radius-sm);
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.booking-back:hover { background: rgba(255,196,0,.16); }
+.booking-title { font-family: var(--font-display); font-weight: 800; font-size: .95rem; letter-spacing: -.01em; }
+.booking-sub { font-size: .73rem; color: rgba(255,253,245,.5); }
+
+/* Barra de pasos: cuatro segmentos rectos */
+.steps { display: flex; gap: 4px; padding-bottom: 0; }
+.step-bar { flex: 1; height: 3px; background: rgba(255,255,255,.13); }
+.step-bar.is-done { background: var(--flava-yellow); }
+.step-bar.is-current { background: linear-gradient(90deg, var(--flava-yellow) 55%, rgba(255,255,255,.13) 55%); }
+
+.booking-main { flex: 1; padding: 22px 0 100px; }
+.booking-step-label { font-size: .71rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; color: var(--flava-honey); margin-bottom: 5px; }
+.booking-h1 { font-size: clamp(1.4rem, 5vw, 1.85rem); margin-bottom: 18px; }
+
+/* Resumen compacto de lo ya elegido, arriba de cada paso */
+.chosen {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border-radius: var(--radius-lg);
+    padding: 13px 15px; margin-bottom: 18px;
+}
+
+.chosen .grow strong { display: block; font-size: .93rem; }
+.chosen .grow span { font-size: .8rem; color: var(--muted); }
+
+/* Opción seleccionable: sin borde en reposo, borde negro al elegir */
+.pick-list { display: flex; flex-direction: column; gap: 8px; }
+
+.pick {
+    display: flex; align-items: center; gap: 12px; min-height: 62px;
+    background: var(--surface); border: 1.5px solid transparent;
+    border-radius: var(--radius-lg); padding: 15px;
+    width: 100%; text-align: left;
+    transition: border-color .14s ease, background .14s ease;
+    position: relative;
+}
+
+.pick:hover  { background: var(--surface-alt); }
+.pick.is-selected { border-color: var(--flava-black); background: var(--surface); }
+
+.pick-check { width: 20px; height: 20px; border-radius: var(--radius-xs); background: var(--surface-alt); color: transparent; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pick.is-selected .pick-check { background: var(--flava-black); color: var(--flava-yellow); }
+
+.pick-body { flex: 1; min-width: 0; }
+.pick-title { font-weight: 800; font-size: .98rem; display: block; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* La meta va siempre en una línea: mantiene todas las filas de la misma altura */
+.pick-meta  { color: var(--muted); font-size: .82rem; display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; }
+.pick-meta > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.pick-meta > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pick-meta .ico { color: var(--muted-soft); }
+.pick-price { font-family: var(--font-display); font-weight: 800; font-size: 1.08rem; white-space: nowrap; }
+
+/* Selector de fechas: cuadrados con día arriba y número abajo */
+.date-strip { display: flex; gap: 7px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.date-strip::-webkit-scrollbar { height: 3px; }
+.date-strip::-webkit-scrollbar-thumb { background: var(--line-strong); }
+
+.date-chip {
+    flex: 0 0 auto; scroll-snap-align: start;
+    min-width: 60px; padding: 9px 8px;
+    background: var(--surface); border: 1.5px solid transparent;
+    border-radius: var(--radius); text-align: center;
+    transition: border-color .14s ease, background .14s ease, color .14s ease;
+}
+
+.date-chip .dow { font-size: .64rem; font-weight: 800; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; display: block; }
+.date-chip .num { font-family: var(--font-display); font-size: 1.28rem; font-weight: 800; line-height: 1.2; display: block; }
+.date-chip .mon { font-size: .6rem; color: var(--muted-soft); text-transform: uppercase; letter-spacing: .05em; display: block; }
+.date-chip:hover { background: var(--surface-alt); }
+.date-chip.is-selected { background: var(--flava-black); border-color: var(--flava-black); color: var(--flava-white); }
+.date-chip.is-selected .dow, .date-chip.is-selected .mon { color: rgba(255,253,245,.6); }
+.date-chip.is-full { opacity: .34; pointer-events: none; }
+.date-chip.is-full .num { text-decoration: line-through; }
+
+/* Grilla de horarios: rectángulos limpios */
+.slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (min-width: 520px) { .slot-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 760px) { .slot-grid { grid-template-columns: repeat(5, 1fr); } }
+
+.slot {
+    padding: 13px 6px; text-align: center;
+    background: var(--surface); border: 1.5px solid transparent;
+    border-radius: var(--radius);
+    font-weight: 700; font-size: .95rem; font-variant-numeric: tabular-nums;
+    transition: border-color .12s ease, background .12s ease, color .12s ease;
+}
+
+.slot:hover { background: var(--surface-alt); }
+.slot.is-selected { background: var(--flava-black); border-color: var(--flava-black); color: var(--flava-white); }
+
+/* Barra inferior fija con el resumen y la acción */
+.booking-bar {
+    position: fixed; inset: auto 0 0; z-index: 70;
+    background: var(--surface); border-top: 1px solid var(--line);
+    padding: 11px 0 calc(11px + env(safe-area-inset-bottom));
+}
+
+.booking-bar-inner { display: flex; align-items: center; gap: 14px; }
+.booking-bar .summary { flex: 1; min-width: 0; }
+.booking-bar .summary strong { display: block; font-size: .92rem; }
+.booking-bar .summary span { font-size: .77rem; color: var(--muted); }
+
+/* ---------- Checkout en dos columnas ---------- */
+.checkout-grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+
+/* En móvil el resumen va primero: el cliente confirma qué reserva antes de escribir */
+.checkout-aside { order: -1; }
+
+@media (min-width: 900px) {
+    .checkout-grid { grid-template-columns: 1.4fr .95fr; }
+    .checkout-aside { order: 0; position: sticky; top: 88px; }
+}
+
+/* Tarjeta de resumen: la única pieza oscura del checkout */
+.summary-card {
+    background: var(--flava-black); color: var(--flava-white);
+    border-radius: var(--radius-lg); padding: 18px;
+    position: relative; overflow: hidden;
+}
+
+.summary-card > * { position: relative; }
+.summary-card h3 { color: var(--flava-yellow); font-size: .71rem; letter-spacing: .11em; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+.summary-row { display: flex; justify-content: space-between; gap: 14px; padding: 7px 0; font-size: .89rem; border-bottom: 1px solid rgba(255,255,255,.07); }
+.summary-row:last-of-type { border-bottom: none; }
+.summary-row .k { color: rgba(255,253,245,.52); }
+.summary-row .v { font-weight: 700; text-align: right; }
+.summary-total { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1.5px solid rgba(255,196,0,.32); }
+.summary-total .k { font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: rgba(255,253,245,.6); }
+.summary-total .v { font-family: var(--font-display); font-size: 1.65rem; font-weight: 800; color: var(--flava-yellow); }
+
+/* Métodos de pago */
+.pay-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+.pay-option {
+    display: flex; align-items: center; gap: 9px; padding: 13px;
+    background: var(--surface); border: 1.5px solid transparent;
+    border-radius: var(--radius); font-weight: 600; font-size: .87rem;
+    transition: border-color .12s ease, background .12s ease;
+}
+
+.pay-option:hover { background: var(--surface-alt); }
+.pay-option.is-selected { border-color: var(--flava-black); }
+.pay-option input { display: none; }
+.pay-option .ico { color: var(--muted); }
+.pay-option.is-selected .ico { color: var(--flava-black); }
+
+/* Bloque de formulario del checkout */
+.form-block { background: var(--surface); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 14px; }
+.form-block-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 800; font-size: .98rem; margin-bottom: 14px; }
+.form-block-title .step-num { width: 22px; height: 22px; background: var(--flava-black); color: var(--flava-yellow); border-radius: var(--radius-xs); display: inline-flex; align-items: center; justify-content: center; font-size: .74rem; }
+
+/* ---------- Confirmación ---------- */
+.confirm-hero { text-align: center; padding: 36px 0 26px; }
+
+.confirm-check {
+    width: 64px; height: 64px; margin: 0 auto 18px;
+    background: var(--flava-yellow); border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--flava-black);
+    animation: pop .36s cubic-bezier(.2,1.4,.4,1);
+}
+
+.confirm-check.is-cancelled { background: var(--surface-alt); color: var(--muted); }
+
+@keyframes pop { 0% { transform: scale(.5); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+
+.confirm-code {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--flava-black); color: var(--flava-yellow);
+    padding: 10px 18px; border-radius: var(--radius);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 1rem; font-weight: 700; letter-spacing: .06em;
+    margin: 4px 0 14px;
+}
+
+.confirm-copy { background: none; border: none; color: var(--flava-yellow); opacity: .65; padding: 0; display: inline-flex; }
+.confirm-copy:hover { opacity: 1; }
+
+/* ---------- Footer ---------- */
+.site-foot { background: var(--flava-deep); color: rgba(255,253,245,.6); padding: 42px 0 24px; font-size: .87rem; }
+.site-foot h4 { color: var(--flava-white); font-size: .73rem; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 11px; }
+.site-foot a { color: rgba(255,253,245,.6); display: inline-flex; align-items: center; gap: 7px; }
+.site-foot a:hover { color: var(--flava-yellow); }
+.foot-grid { display: grid; grid-template-columns: 1fr; gap: 28px; margin-bottom: 26px; }
+@media (min-width: 700px) { .foot-grid { grid-template-columns: 1.4fr 1fr 1fr; } }
+.foot-bottom { border-top: 1px solid rgba(255,255,255,.07); padding-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: .78rem; }
+
+/* Botón flotante de WhatsApp */
+.wa-float {
+    position: fixed; right: 16px; bottom: 16px; z-index: 90;
+    width: 48px; height: 48px; border-radius: var(--radius-lg);
+    background: #25D366; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-md);
+    transition: transform .14s ease;
+}
+
+.wa-float:hover { transform: translateY(-2px); }

@@ -1,0 +1,24 @@
+# Ruta: /public/uploads/.htaccess
+# Las imágenes que sube el personal se sirven; nada más se ejecuta.
+#
+# Funciona igual en Apache (mod_php o FPM) y en LiteSpeed, que es lo que usa
+# Hostinger: en vez de apagar el motor PHP —que depende del módulo— se bloquea
+# el acceso a cualquier archivo ejecutable.
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|php8|phps|phar|cgi|pl|py|sh|htaccess)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Por si el servidor ignorara lo anterior, tampoco se interpreta nada
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+Options -Indexes -ExecCGI
+AddHandler default-handler .php .phtml .phar .cgi .pl .py

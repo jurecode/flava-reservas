@@ -1,0 +1,116 @@
+/* ==========================================================================
+   Ruta: /public/assets/css/install.css
+   Asistente de instalación. Una sola columna, pasos visibles arriba y nada
+   que distraiga de la tarea de cada pantalla.
+   ========================================================================== */
+
+.install-body { background: var(--canvas); min-height: 100vh; display: flex; flex-direction: column; }
+
+.install-top { background: var(--flava-deep); color: var(--flava-white); padding: 14px 0; }
+.install-brand { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
+.install-brand em { font-style: normal; color: var(--flava-yellow); }
+.install-version { margin-left: auto; font-family: var(--font); font-size: .68rem; font-weight: 700; color: rgba(255,253,245,.45); text-transform: uppercase; letter-spacing: .08em; }
+
+/* Barra de pasos */
+.install-steps-bar { background: var(--flava-black); padding: 0 0 2px; overflow-x: auto; }
+
+.install-steps {
+    display: flex; gap: 2px; list-style: none;
+    margin: 0; padding: 0;
+    min-width: max-content;
+}
+
+.install-step {
+    display: flex; align-items: center; gap: 7px;
+    padding: 11px 14px;
+    font-size: .78rem; font-weight: 600;
+    color: rgba(255,253,245,.42);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.install-step-num {
+    width: 20px; height: 20px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-xs);
+    background: rgba(255,255,255,.09);
+    font-size: .68rem; font-weight: 800;
+    flex-shrink: 0;
+}
+
+.install-step.is-done { color: rgba(255,253,245,.66); }
+.install-step.is-done .install-step-num { background: var(--ok); color: #fff; }
+.install-step.is-current { color: var(--flava-white); border-bottom-color: var(--flava-yellow); }
+.install-step.is-current .install-step-num { background: var(--flava-yellow); color: var(--flava-black); }
+
+@media (max-width: 700px) { .install-step-label { display: none; } .install-step { padding: 11px; } }
+
+.install-main { flex: 1; padding: 26px 0 50px; }
+.install-foot { padding: 18px 0 26px; }
+
+/* Encabezado de cada paso */
+.install-head { margin-bottom: 20px; }
+.install-head h1 { font-size: clamp(1.4rem, 4.4vw, 1.9rem); margin-bottom: 6px; }
+.install-head p { color: var(--muted); margin: 0; }
+
+/* Lista de comprobaciones */
+.check-list { display: flex; flex-direction: column; }
+
+.check-item {
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 11px 0; border-bottom: 1px solid var(--line);
+}
+
+.check-item:last-child { border-bottom: none; }
+.check-item .mark { flex-shrink: 0; display: inline-flex; margin-top: 1px; }
+.check-item.is-ok .mark { color: var(--ok); }
+.check-item.is-fail .mark { color: var(--danger); }
+.check-item.is-warn .mark { color: var(--muted-soft); }
+.check-item .check-label { font-weight: 600; font-size: .89rem; }
+.check-item .detail { color: var(--muted); font-size: .79rem; line-height: 1.5; }
+
+/* Bloque de código para copiar y pegar */
+.code-block {
+    background: var(--flava-deep); color: #C9D6C9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .74rem; line-height: 1.65;
+    padding: 14px; border-radius: var(--radius);
+    max-height: 320px; overflow: auto;
+    white-space: pre; margin: 0;
+}
+
+/* Pista contextual del hosting */
+.hosting-hint {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--info-soft); color: #14507F;
+    padding: 12px 14px; border-radius: var(--radius);
+    font-size: .83rem; line-height: 1.55;
+    margin-bottom: 16px;
+}
+
+.hosting-hint .ico { flex-shrink: 0; margin-top: 1px; }
+.hosting-hint strong { font-weight: 800; }
+.hosting-hint code { background: rgba(20,80,127,.11); padding: 1px 5px; border-radius: 3px; }
+
+/* Navegación entre pasos */
+.install-nav { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-top: 22px; flex-wrap: wrap; }
+.install-nav .btn { flex: 0 0 auto; }
+@media (max-width: 520px) { .install-nav { flex-direction: column-reverse; } .install-nav .btn { width: 100%; } }
+
+/* Pantalla final */
+.install-done { text-align: center; padding: 20px 0; }
+
+.install-done-mark {
+    width: 62px; height: 62px; margin: 0 auto 18px;
+    background: var(--flava-yellow); color: var(--flava-black);
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+}
+
+.next-steps { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.next-step { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.next-step:last-child { border-bottom: none; }
+.next-step .num { width: 22px; height: 22px; background: var(--flava-black); color: var(--flava-yellow); border-radius: var(--radius-xs); display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 800; flex-shrink: 0; }
+.next-step .txt { font-size: .87rem; }
+.next-step .txt strong { display: block; }
+.next-step .txt span { color: var(--muted); font-size: .81rem; }

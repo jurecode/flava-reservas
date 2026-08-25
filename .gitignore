@@ -1,0 +1,46 @@
+# Ruta: /.gitignore
+
+# Secretos y configuración de entorno
+.env
+.env.*
+!.env.example
+/config/secrets.php
+/config/database.php
+/config/installed.php
+!/config/database.example.php
+
+# Contenido generado / persistente
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/backups/*
+!/storage/backups/.gitkeep
+/storage/framework/*
+!/storage/framework/.gitkeep
+!/storage/framework/.htaccess
+!/storage/framework/sessions/
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/.htaccess
+!/public/uploads/*/
+/public/uploads/*/*
+!/public/uploads/*/.gitkeep
+
+# Sistema / editores
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.claude/
+node_modules/
+vendor/
+
+# Archivos de empaquetado local
+*.zip
+!database/*.zip
+
+# El diagnóstico se sube sólo cuando hace falta

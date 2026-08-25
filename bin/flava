@@ -1,0 +1,425 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Ruta: /bin/flava
+ * Consola de Flava Studio. Ninguna de estas tareas es obligatoria para operar
+ * en un hosting compartido: todo lo esencial también se hace desde el panel.
+ *
+ * Uso:  php bin/flava <comando> [argumentos]
+ */
+
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    exit("Este script sólo se ejecuta desde la línea de comandos.\n");
+}
+
+/** @var Core\App $app */
+$app = require dirname(__DIR__) . '/core/bootstrap.php';
+
+date_default_timezone_set((string) config('app.timezone', 'America/Santiago'));
+
+$command = $argv[1] ?? 'help';
+$args    = array_slice($argv, 2);
+
+$out  = static fn (string $text = '') => print($text . PHP_EOL);
+$ok   = static fn (string $text) => print("\033[32m✓\033[0m {$text}" . PHP_EOL);
+$fail = static fn (string $text) => print("\033[31m✗\033[0m {$text}" . PHP_EOL);
+$info = static fn (string $text) => print("\033[33m›\033[0m {$text}" . PHP_EOL);
+
+try {
+    switch ($command) {
+
+        // -------------------------------------------------------------
+        case 'key:generate':
+            $key = App\Support\Crypto::generateKey();
+            $out();
+            $ok('Clave generada. Guárdala en /.env o /config/secrets.php:');
+            $out();
+            $out("  APP_KEY={$key}");
+            $out();
+            $info('Esta clave cifra los secretos (como el token de GitHub).');
+            $info('Si la cambias, los secretos ya guardados dejarán de poder descifrarse.');
+            break;
+
+        // -------------------------------------------------------------
+        case 'install:check':
+            $out();
+            $out('  FLAVA STUDIO · verificación de instalación');
+            $out('  ' . str_repeat('─', 44));
+
+            $checks = [
+                'PHP 8.1 o superior'  => PHP_VERSION_ID >= 80100,
+                'Extensión pdo_mysql' => extension_loaded('pdo_mysql'),
+                'Extensión mbstring'  => extension_loaded('mbstring'),
+                'Extensión curl'      => extension_loaded('curl'),
+                'Cifrado disponible'  => extension_loaded('sodium') || extension_loaded('openssl'),
+                'APP_KEY configurada' => App\Support\Crypto::isConfigured(),
+                'Conexión a MySQL'    => Core\Database::instance()->isConnected(),
+                '/storage escribible' => is_writable(STORAGE_PATH),
+                '/public/uploads escribible' => is_writable(PUBLIC_PATH . '/uploads'),
+            ];
+
+            foreach ($checks as $label => $passed) {
+                $passed ? $ok($label) : $fail($label);
+            }
+
+            if (Core\Database::instance()->isConnected()) {
+                $tables = ['users', 'bookings', 'barbers', 'services', 'settings', 'migrations'];
+                $out();
+
+                foreach ($tables as $table) {
+                    Core\Database::instance()->tableExists($table)
+                        ? $ok("Tabla {$table}")
+                        : $fail("Falta la tabla {$table} — importa /database/flava.sql");
+                }
+            }
+
+            $out();
+            break;
+
+        // -------------------------------------------------------------
+        case 'user:create':
+            $out();
+            $out('  Crear usuario interno');
+            $out('  ' . str_repeat('─', 30));
+
+            $ask = static function (string $label, bool $hidden = false): string {
+                echo $label . ': ';
+
+                if ($hidden && DIRECTORY_SEPARATOR !== '\\') {
+                    system('stty -echo');
+                    $value = trim((string) fgets(STDIN));
+                    system('stty echo');
+                    echo PHP_EOL;
+
+                    return $value;
+                }
+
+                return trim((string) fgets(STDIN));
+            };
+
+            $firstName = $ask('Nombre');
+            $lastName  = $ask('Apellido');
+            $email     = $ask('Email');
+            $password  = $ask('Contraseña', true);
+            $role      = strtoupper($ask('Rol (SUPER_ADMIN, ADMIN, RECEPTION, BARBER)') ?: 'ADMIN');
+
+            if (!App\Support\Role::isValid($role)) {
+                $fail('Rol inválido.');
+                exit(1);
+            }
+
+            if (strlen($password) < 8) {
+                $fail('La contraseña debe tener al menos 8 caracteres.');
+                exit(1);
+            }
+
+            $model = new App\Models\User();
+
+            if ($model->findByEmail($email) !== null) {
+                $fail('Ya existe un usuario con ese email.');
+                exit(1);
+            }
+
+            $id = $model->createUser([
+                'branch_id'  => App\Models\Branch::defaultId(),
+                'first_name' => $firstName,
+                'last_name'  => $lastName,
+                'email'      => $email,
+                'password'   => $password,
+                'role'       => $role,
+                'status'     => 1,
+            ]);
+
+            $ok("Usuario #{$id} creado con rol {$role}.");
+            break;
+
+        // -------------------------------------------------------------
+        case 'user:password':
+            $email = $args[0] ?? null;
+
+            if ($email === null) {
+                $fail('Uso: php bin/flava user:password <email>');
+                exit(1);
+            }
+
+            $model = new App\Models\User();
+            $user  = $model->findByEmail($email);
+
+            if ($user === null) {
+                $fail('No existe un usuario con ese email.');
+                exit(1);
+            }
+
+            $password = bin2hex(random_bytes(5));
+            $model->updatePassword((int) $user['id'], $password);
+            $model->update((int) $user['id'], ['must_change_password' => 1]);
+
+            $ok("Contraseña temporal para {$email}: {$password}");
+            $info('Se le pedirá cambiarla al ingresar.');
+            break;
+
+        // -------------------------------------------------------------
+        case 'migrate':
+            $service = new App\Services\System\MigrationService();
+            $pending = $service->pending();
+
+            if ($pending === []) {
+                $ok('No hay migraciones pendientes.');
+                break;
+            }
+
+            $info(count($pending) . ' migración(es) pendiente(s):');
+            foreach ($pending as $file) {
+                $out('   · ' . $file);
+            }
+
+            $out();
+            $info('Creando respaldo previo...');
+
+            try {
+                $backup = (new App\Services\System\BackupService())->create('cli-migrate');
+                $ok('Respaldo: ' . $backup['name']);
+            } catch (Throwable $e) {
+                $fail('No se pudo respaldar: ' . $e->getMessage());
+                exit(1);
+            }
+
+            $result = $service->run();
+
+            foreach ($result['executed'] as $name) {
+                $ok($name);
+            }
+
+            if ($result['failed'] !== null) {
+                $fail(sprintf(
+                    'Falló %s en la sentencia %d: %s',
+                    $result['failed'],
+                    (int) $result['statement'],
+                    $result['error']
+                ));
+
+                if ($result['partial']) {
+                    $info('⚠ Las sentencias anteriores de ese archivo ya se aplicaron (el DDL de MySQL');
+                    $info('  no es reversible). Revisa la estructura o restaura el respaldo recién creado.');
+                }
+
+                exit(1);
+            }
+
+            $ok(count($result['executed']) . ' migración(es) aplicada(s).');
+            break;
+
+        // -------------------------------------------------------------
+        case 'migrate:status':
+            $service = new App\Services\System\MigrationService();
+
+            $out();
+            $out('  Migraciones');
+            $out('  ' . str_repeat('─', 44));
+
+            $pending  = $service->pending();
+            $executed = (new App\Models\Migration())->executedNames();
+
+            foreach ($service->available() as $file) {
+                in_array(pathinfo($file, PATHINFO_FILENAME), $executed, true)
+                    ? $ok($file)
+                    : $info($file . '  (pendiente)');
+            }
+
+            $out();
+            $out('  ' . count($pending) . ' pendiente(s) · ' . count($executed) . ' ejecutada(s)');
+            $out();
+            break;
+
+        // -------------------------------------------------------------
+        case 'make:migration':
+            $description = $args[0] ?? null;
+
+            if ($description === null) {
+                $fail('Uso: php bin/flava make:migration "descripción del cambio"');
+                exit(1);
+            }
+
+            $name = (new App\Services\System\MigrationService())->make($description);
+            $ok('Migración creada: /database/migrations/' . $name);
+            break;
+
+        // -------------------------------------------------------------
+        case 'backup':
+            $backup = (new App\Services\System\BackupService())->create($args[0] ?? 'cli');
+            $ok('Respaldo creado: ' . $backup['name'] . ' (' . App\Services\System\BackupService::humanSize($backup['size']) . ')');
+            $info('Ubicación: ' . $backup['path']);
+            break;
+
+        // -------------------------------------------------------------
+        case 'notifications:process':
+            // Pensado para un cron:
+            //   */5 * * * * php /ruta/bin/flava notifications:process
+            $stats = (new App\Services\NotificationService())->processQueue(100);
+            $ok(sprintf(
+                'Procesadas: %d · enviadas: %d · fallidas: %d',
+                $stats['processed'],
+                $stats['sent'],
+                $stats['failed']
+            ));
+            break;
+
+        // -------------------------------------------------------------
+        case 'maintenance:on':
+            (new App\Services\System\MaintenanceService())->enable($args[0] ?? null)
+                ? $ok('Modo mantención activado.')
+                : $fail('No se pudo activar (revisa permisos de /storage/framework).');
+            break;
+
+        case 'maintenance:off':
+            (new App\Services\System\MaintenanceService())->disable()
+                ? $ok('Modo mantención desactivado.')
+                : $fail('No se pudo desactivar.');
+            break;
+
+        // -------------------------------------------------------------
+        case 'routes':
+            $app->boot();
+
+            foreach ($app->router()->routes() as $route) {
+                printf("  %-7s %-42s %s\n", $route['method'], $route['uri'], $route['handler']);
+            }
+            break;
+
+        // -------------------------------------------------------------
+        case 'package':
+            // Empaqueta el proyecto para subirlo al hosting.
+            //
+            // Existe porque comprimir la carpeta a mano arrastra archivos que
+            // NUNCA deben salir del equipo de desarrollo: config/database.php
+            // (credenciales locales), config/installed.php (marca el sistema
+            // como instalado y desactiva el asistente), .env, logs y las
+            // imágenes ya subidas. Con esos archivos dentro, el servidor
+            // arranca creyendo estar instalado y apuntando a una base que allá
+            // no existe: error 500 sin explicación.
+            $destino = $argv[2] ?? BASE_PATH . '/flava-studio-' . config('version.version') . '.zip';
+
+            if (!extension_loaded('zip')) {
+                $error('Falta la extensión zip de PHP.');
+                exit(1);
+            }
+
+            $excluir = [
+                '.git', '.github', '.claude', 'node_modules', '.DS_Store',
+                '.env', 'config/database.php', 'config/secrets.php', 'config/installed.php',
+                'storage/logs', 'storage/cache', 'storage/backups', 'storage/framework/sessions',
+                'public/uploads', 'diagnostico.php',
+            ];
+
+            $esExcluido = static function (string $ruta) use ($excluir): bool {
+                foreach ($excluir as $patron) {
+                    if ($ruta === $patron || str_starts_with($ruta, $patron . '/')) {
+                        return true;
+                    }
+                    if (basename($ruta) === $patron) {
+                        return true;
+                    }
+                }
+
+                return str_ends_with($ruta, '.zip');
+            };
+
+            @unlink($destino);
+            $zip = new ZipArchive();
+
+            if ($zip->open($destino, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+                $error('No se pudo crear ' . $destino);
+                exit(1);
+            }
+
+            $iterador = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(BASE_PATH, FilesystemIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
+
+            $archivos = 0;
+            $omitidos = 0;
+
+            foreach ($iterador as $item) {
+                $relativa = str_replace(BASE_PATH . '/', '', $item->getPathname());
+
+                if ($esExcluido($relativa)) {
+                    $omitidos++;
+                    continue;
+                }
+
+                if ($item->isDir()) {
+                    $zip->addEmptyDir($relativa);
+                    continue;
+                }
+
+                $zip->addFile($item->getPathname(), $relativa);
+                $archivos++;
+            }
+
+            // Carpetas que deben existir vacías en el servidor
+            foreach (['storage/logs', 'storage/cache', 'storage/backups',
+                      'storage/framework/sessions', 'public/uploads',
+                      'public/uploads/services', 'public/uploads/barbers',
+                      'public/uploads/products', 'public/uploads/branding'] as $carpeta) {
+                $zip->addEmptyDir($carpeta);
+                $zip->addFromString($carpeta . '/.gitkeep', '');
+            }
+
+            $zip->close();
+
+            $out('');
+            $ok('Paquete listo: ' . basename($destino));
+            $out('    ' . $archivos . ' archivos · ' . $omitidos . ' omitidos · '
+                . round(filesize($destino) / 1024) . ' KB');
+            $out('');
+            $info('Excluidos a propósito: credenciales, marca de instalación, logs y uploads.');
+            $out('');
+            $out('    Súbelo a public_html, descomprímelo y borra el .zip.');
+            $out('    Si el .htaccess no aparece, renombra htaccess-raiz.txt a .htaccess.');
+            $out('');
+            break;
+
+        // -------------------------------------------------------------
+        case 'version':
+            $out('Flava Studio v' . config('version.version') . ' «' . config('version.codename') . '»');
+            break;
+
+        // -------------------------------------------------------------
+        default:
+            $out();
+            $out('  FLAVA STUDIO · consola');
+            $out('  ' . str_repeat('─', 52));
+            $out();
+            $out('  Instalación');
+            $out('    install:check              Verifica requisitos y base de datos');
+            $out('    package [destino.zip]      Empaqueta el proyecto para subirlo al hosting');
+            $out('    key:generate               Genera la APP_KEY para cifrar secretos');
+            $out('    user:create                Crea un usuario interno');
+            $out('    user:password <email>      Genera una contraseña temporal');
+            $out();
+            $out('  Base de datos');
+            $out('    migrate                    Respalda y ejecuta migraciones pendientes');
+            $out('    migrate:status             Estado de las migraciones');
+            $out('    make:migration "texto"     Crea un archivo de migración');
+            $out('    backup [etiqueta]          Respalda la base de datos');
+            $out();
+            $out('  Operación');
+            $out('    notifications:process      Procesa la cola de notificaciones (cron)');
+            $out('    maintenance:on [mensaje]   Activa el modo mantención');
+            $out('    maintenance:off            Desactiva el modo mantención');
+            $out('    routes                     Lista las rutas registradas');
+            $out('    version                    Versión instalada');
+            $out();
+    }
+} catch (Throwable $e) {
+    $fail($e->getMessage());
+
+    if (config('app.debug')) {
+        $out($e->getTraceAsString());
+    }
+
+    exit(1);
+}
